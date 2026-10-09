@@ -188,7 +188,7 @@
     <main class="quiz-card" id="quizCard">
       <div class="card-meta">
         <span class="category-badge" id="badgeCategory">동사</span>
-        <span style="font-size: 0.72rem; color: var(--text-muted);">중복 없는 단독 출제 | [1][2][3][4] 선택</span>
+        <span style="font-size: 0.72rem; color: var(--text-muted);">순수 원형 단독 출제 | [1][2][3][4] 선택</span>
       </div>
 
       <div class="word-display">
@@ -252,7 +252,7 @@
   <div class="modal-overlay" id="vocabModal">
     <div class="modal-box">
       <div class="modal-header">
-        <h3 class="modal-title">📖 크메르어 대사전 (<span id="totalDictCount">0</span>단어)</h3>
+        <h3 class="modal-title">📖 크메르어 2000 대사전 (<span id="totalDictCount">0</span>단어)</h3>
         <button class="modal-close" id="btnCloseVocab">&times;</button>
       </div>
       <div class="modal-body">
@@ -276,7 +276,7 @@
 
   <script>
     /* ==========================================================================
-       1. 사용자 제공 원본 문서 기반 2,000단어 데이터베이스
+       1. 사용자 제공 원본 문서 기반 2,000단어 데이터베이스 (순수 원형 단독 수록)
        ========================================================================== */
     const RAW_DOC_WORDS = [
       // [동사 1~100]
@@ -579,86 +579,33 @@
     ];
 
     /* ==========================================================================
-       ★ 문제 풀: 1000문제 완전 비중복 생성 엔진
+       ★ 인위적 수식어 접두사 완전 삭제: 100% 순수 원형 회전 엔진
        ========================================================================== */
-    function generate1000UniquePool(baseList, startNum = 1) {
+    function buildCleanSessionPool(baseList, targetLength = 1000) {
       const pool = [];
-      const usedMap = new Set();
-      let index = startNum;
-
-      for (const item of baseList) {
-        if (!usedMap.has(item.khmer) && pool.length < 1000) {
-          usedMap.add(item.khmer);
-          pool.push({ id: item.id, qNum: index++, khmer: item.khmer, pron: item.pron, meaning: item.meaning, type: item.type });
+      while (pool.length < targetLength) {
+        const shuffled = shuffle(baseList);
+        for (const item of shuffled) {
+          if (pool.length < targetLength) {
+            // 순수 원형 그대로 추가 (수식어 절대 붙이지 않음)
+            pool.push({
+              id: item.id,
+              khmer: item.khmer,
+              pron: item.pron,
+              meaning: item.meaning,
+              type: item.type
+            });
+          }
         }
       }
-
-      const prefixes = [
-        { kh: "ត្រូវតែ", pr: "뜨러우 따에 ", ko: "반드시 " },
-        { kh: "មិនអាច", pr: "먼 앗 ", ko: "도저히 못 " },
-        { kh: "ចូលចិត្ត", pr: "쪼올쩟 ", ko: "즐겨 " },
-        { kh: "ព្យាយាម", pr: "삐어이지어엄 ", ko: "열심히 " },
-        { kh: "ចាប់ផ្តើម", pr: "짭프다엄 ", ko: "비로소 " },
-        { kh: "ត្រៀម", pr: "뜨리엄 ", ko: "미리 " },
-        { kh: "សម្រេចចិត្ត", pr: "썸라엣쩟 ", ko: "결심하고 " },
-        { kh: "ទើបតែ", pr: "떠업 따에 ", ko: "막 " },
-        { kh: "ធ្លាប់បាន", pr: "틀로압 반 ", ko: "일찍이 " },
-        { kh: "បន្ត", pr: "본떠 ", ko: "계속해서 " },
-        { kh: "តែងតែ", pr: "따엥 따에 ", ko: "항상 " },
-        { kh: "កម្រនឹង", pr: "껌러 넝 ", ko: "좀처럼 안 " },
-        { kh: "ប្រញាប់", pr: "쁘러왑 ", ko: "서둘러 " },
-        { kh: "ស្ម័គ្រចិត្ត", pr: "스막 쩟 ", ko: "기꺼이 " },
-        { kh: "សង្ឃឹមថានឹង", pr: "쌍큼 타 넝 ", ko: "소망하며 " },
-        { kh: "រួមគ្នា", pr: "루옴 크니어 ", ko: "함께 " },
-        { kh: "ដោយស្មោះ", pr: "다오이 스모 ", ko: "진심으로 " },
-        { kh: "ចង់បាន", pr: "쩡 반 ", ko: "간절히 원하여 " }
-      ];
-
-      let pIdx = 0;
-      let bIdx = 0;
-      let safety = 0;
-
-      while (pool.length < 1000 && safety < 4000) {
-        safety++;
-        const base = baseList[bIdx % baseList.length];
-        const p = prefixes[pIdx % prefixes.length];
-        const newKh = p.kh + base.khmer;
-
-        if (!usedMap.has(newKh)) {
-          usedMap.add(newKh);
-          pool.push({
-            id: base.id,
-            qNum: index++,
-            khmer: newKh,
-            pron: p.pr + base.pron,
-            meaning: p.ko + base.meaning,
-            type: base.type
-          });
-        }
-        bIdx++;
-        if (bIdx % baseList.length === 0) pIdx++;
-      }
-
-      while (pool.length < 1000) {
-        const item = baseList[pool.length % baseList.length];
-        pool.push({
-          id: item.id,
-          qNum: index++,
-          khmer: item.khmer,
-          pron: item.pron,
-          meaning: item.meaning,
-          type: item.type
-        });
-      }
-
       return pool;
     }
 
     const GENERAL_BASE = RAW_DOC_WORDS.filter(w => w.id <= 1000);
     const BIBLE_BASE = RAW_DOC_WORDS.filter(w => w.id >= 1001);
 
-    const GENERAL_POOL_1000 = generate1000UniquePool(GENERAL_BASE, 1);
-    const BIBLE_POOL_1000 = generate1000UniquePool(BIBLE_BASE, 1001);
+    const GENERAL_POOL_1000 = buildCleanSessionPool(GENERAL_BASE, 1000);
+    const BIBLE_POOL_1000 = buildCleanSessionPool(BIBLE_BASE, 1000);
 
     const MASTER_DICTIONARY = RAW_DOC_WORDS;
 
@@ -777,8 +724,10 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       for (let i = confettiParticles.length - 1; i >= 0; i--) {
         const p = confettiParticles[i];
-        p.x += p.vx; p.y += p.vy; p.vy += 0.38; p.vx *= 0.98;
-        p.rotation += p.rotSpeed; p.opacity -= p.decay;
+        p.x += p.vx; p.y += p.vy;
+        p.vy += 0.38; p.vx *= 0.98;
+        p.rotation += p.rotSpeed;
+        p.opacity -= p.decay;
         if (p.opacity <= 0 || p.y > canvas.height) { confettiParticles.splice(i, 1); continue; }
         ctx.save();
         ctx.globalAlpha = Math.max(0, p.opacity);
@@ -793,7 +742,7 @@
     }
 
     /* ==========================================================================
-       4. 발음 오디오 엔진 (이중 안전망)
+       4. 발음 오디오 엔진 (Google TTS + Web Speech 안전 대체)
        ========================================================================== */
     let audioMode = 'khmer';
     let currentAudioObj = null;
@@ -870,9 +819,9 @@
     }
 
     /* ==========================================================================
-       5. 퀴즈 엔진 & 목숨 5개 시스템
+       5. 퀴즈 엔진 & 선지 격리(일반 vs 성경) & 목숨 5개
        ========================================================================== */
-    const MAX_LIVES = 5; // 목숨 5개로 확장
+    const MAX_LIVES = 5;
     let currentLives = 5;
     let currentMode = 'general';
     let questionPool = [];
@@ -961,7 +910,7 @@
       if (currentLives <= 0) return;
 
       if (currentIndex >= questionPool.length) {
-        alert('🎉 축하합니다! 이 모드의 1,000문제를 중복 없이 모두 완주하셨습니다!');
+        alert('🎉 축하합니다! 이 모드의 1,000문제를 모두 완주하셨습니다!');
         currentIndex = 0;
         questionPool = shuffle(questionPool);
       }
@@ -969,7 +918,7 @@
       isAnswered = false;
       const targetWord = questionPool[currentIndex];
 
-      // 선지 엄격 분리: 성경 문제는 오직 성경 단어에서만, 일반 문제는 일반 단어에서만 선지 추출!
+      // ★ 오답 선지 엄격 분리: 성경 문제는 성경 어휘에서만, 일반 문제는 일반 어휘에서만 추출!
       const isBible = (currentMode === 'bible' || targetWord.id >= 1001);
       let candidatePool;
 
@@ -1166,7 +1115,7 @@
     }
 
     function updateStats() {
-      const curDisplayNum = (currentMode === 'bible') ? (1001 + currentIndex) : (currentIndex + 1);
+      const curDisplayNum = (currentMode === 'bible') ? (1001 + (currentIndex % 1000)) : (1 + (currentIndex % 1000));
       const totalDisplayNum = (currentMode === 'bible') ? 2000 : 1000;
 
       document.getElementById('statCurrent').textContent = Math.min(curDisplayNum, totalDisplayNum);
@@ -1182,7 +1131,7 @@
         rateEl.className = `stat-val ${rate >= 90 ? 'gold' : rate >= 70 ? 'green' : ''}`;
       }
 
-      const progressPercent = questionPool.length > 0 ? ((currentIndex) / questionPool.length) * 100 : 0;
+      const progressPercent = ((currentIndex % 1000) / 1000) * 100;
       document.getElementById('progressBar').style.width = `${progressPercent}%`;
     }
 
@@ -1203,7 +1152,7 @@
       comboCount = 0;
       document.getElementById('gameOverModal').classList.remove('open');
       initQuizPool();
-      showToast('💖 생명이 5개로 완충되었습니다! 다시 도전해보세요!');
+      showToast('💖 생명이 5개로 완충되었습니다! 힘내세요!');
     }
 
     /* ==========================================================================
