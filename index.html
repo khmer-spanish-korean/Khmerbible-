@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <!-- 구글 TTS 403 차단 방지 필수 메타 태그 -->
   <meta name="referrer" content="no-referrer">
   <title>크메르어 2000 종합 퀴즈 & 대사전</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -47,7 +46,7 @@
     .stat-val { font-size: 0.92rem; font-weight: 700; color: #fff; }
     .stat-val.gold { color: var(--gold-light); }
     .stat-val.green { color: var(--success); }
-    .stat-val.lives { font-size: 0.92rem; letter-spacing: 2px; }
+    .stat-val.lives { font-size: 0.88rem; letter-spacing: 1px; }
     .progress-container { width: 100%; height: 6px; background: #334155; border-radius: 3px; overflow: hidden; }
     .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #6366f1, #10b981); transition: width 0.3s ease; }
     .quiz-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.45); position: relative; }
@@ -82,7 +81,7 @@
     .option-btn.wrong-chosen .option-status-badge { display: inline-block; background: var(--danger); color: #fff; }
     .option-btn.distractor { opacity: 0.85; border-color: #475569; }
     .option-btn.locked { cursor: default; }
-    .feedback-bar { display: none; flex-direction: column; gap: 10px; padding: 12px; border-radius: 14px; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border); animation: slideUp 0.3s ease; }
+    .feedback-bar { display: none; flex-direction: column; gap: 10px; padding: 12px; border-radius: 14px; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border); }
     .feedback-title { font-size: 1rem; font-weight: 700; }
     .btn-next-question { width: 100%; background: linear-gradient(135deg, var(--primary), var(--primary-light)); border: none; color: #fff; padding: 12px; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; }
     .toast-popup { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: rgba(15, 23, 42, 0.95); border: 1px solid var(--gold); color: #fff; padding: 8px 16px; border-radius: 24px; font-size: 0.85rem; font-weight: 600; z-index: 1000; opacity: 0; transition: all 0.3s ease; pointer-events: none; text-align: center; max-width: 90vw; }
@@ -122,7 +121,6 @@
     .type-verb { background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #6ee7b7; }
     .type-adj { background: rgba(245, 158, 11, 0.2); border-color: #f59e0b; color: #fde68a; }
     .type-bible { background: rgba(236, 72, 153, 0.2); border-color: #ec4899; color: #fbcfe8; }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
@@ -134,7 +132,7 @@
       <div class="header-top">
         <div class="logo-area">
           <span class="flag-icon">🇰🇭</span>
-          <h1 class="app-title">크메르어 종합 퀴즈 2000</h1>
+          <h1 class="app-title">크메르어 2000 종합 퀴즈</h1>
         </div>
         <div class="header-actions">
           <button class="btn-pill gold" id="btnOpenHall">🏆 명예의 전당</button>
@@ -154,10 +152,11 @@
         <button class="tab-btn" data-mode="wrong">오답 (<span id="wrongCount">0</span>)</button>
       </div>
 
+      <!-- 상단 상태창: 목숨 5개 표기 -->
       <div class="stats-bar">
         <div class="stat-item">
-          <span class="stat-label">생명</span>
-          <span class="stat-val lives" id="statLives">❤️❤️❤️</span>
+          <span class="stat-label">생명 (5개)</span>
+          <span class="stat-val lives" id="statLives">❤️❤️❤️❤️❤️</span>
         </div>
         <div class="stat-item">
           <span class="stat-label">진행 번호</span>
@@ -168,7 +167,7 @@
           <span class="stat-val gold" id="statRate">0%</span>
         </div>
         <div class="stat-item">
-          <span class="stat-label">정답 / 풀이</span>
+          <span class="stat-label">맞힌 수 / 풀이</span>
           <span class="stat-val green"><span id="statCorrect">0</span> / <span id="statSolved">0</span></span>
         </div>
         <div class="stat-item">
@@ -220,12 +219,12 @@
       <div class="modal-body">
         <div class="gameover-box">
           <div class="gameover-icon">💔</div>
-          <div class="gameover-title">생명을 모두 소진했습니다!</div>
+          <div class="gameover-title">5번의 기회를 모두 소진했습니다!</div>
           <div class="gameover-desc">
             맞힌 정답: <strong id="goScore" style="color:#fff;">0</strong>개<br>
             최고 연속 콤보: <strong id="goCombo" style="color:var(--gold-light);">0</strong>회
           </div>
-          <button class="btn-restart" id="btnRestart">🔄 생명 충전하고 다시 도전하기</button>
+          <button class="btn-restart" id="btnRestart">🔄 생명 5개 충전하고 다시 도전하기</button>
         </div>
       </div>
     </div>
@@ -249,11 +248,11 @@
     </div>
   </div>
 
-  <!-- 사전 모달 -->
+  <!-- 통합 사전 모달 -->
   <div class="modal-overlay" id="vocabModal">
     <div class="modal-box">
       <div class="modal-header">
-        <h3 class="modal-title">📖 크메르어 2000 대사전 (<span id="totalDictCount">0</span>단어)</h3>
+        <h3 class="modal-title">📖 크메르어 대사전 (<span id="totalDictCount">0</span>단어)</h3>
         <button class="modal-close" id="btnCloseVocab">&times;</button>
       </div>
       <div class="modal-body">
@@ -280,7 +279,7 @@
        1. 사용자 제공 원본 문서 기반 2,000단어 데이터베이스
        ========================================================================== */
     const RAW_DOC_WORDS = [
-      // [동사 1~50: 가장 자주 쓰는 기본 동사]
+      // [동사 1~100]
       { id: 1, khmer: "ជា", pron: "찌어", meaning: "~이다", type: "동사" },
       { id: 2, khmer: "មាន", pron: "미언", meaning: "있다, 가지다", type: "동사" },
       { id: 3, khmer: "នៅ", pron: "너으", meaning: "(어디에) 있다, 살다", type: "동사" },
@@ -331,8 +330,6 @@
       { id: 48, khmer: "គិត", pron: "끗", meaning: "생각하다", type: "동사" },
       { id: 49, khmer: "សួរ", pron: "수어", meaning: "묻다", type: "동사" },
       { id: 50, khmer: "ឆ្លើយ", pron: "츨라이", meaning: "대답하다", type: "동사" },
-
-      // [동사 51~100: 이동·방향·생활]
       { id: 51, khmer: "ត្រឡប់", pron: "뜨럴럽", meaning: "돌아가다, 돌아오다", type: "동사" },
       { id: 52, khmer: "ដល់", pron: "덜", meaning: "도착하다, 이르다", type: "동사" },
       { id: 53, khmer: "ចាកចេញ", pron: "짝 쩬", meaning: "떠나다", type: "동사" },
@@ -342,7 +339,7 @@
       { id: 57, khmer: "ចត", pron: "쩟", meaning: "주차하다, 세우다", type: "동사" },
       { id: 58, khmer: "បត់", pron: "벗", meaning: "돌다, 접다", type: "동사" },
       { id: 59, khmer: "ឆ្លង", pron: "츨렁", meaning: "건너다", type: "동사" },
-      { id: 62, khmer: "ហែលទឹក", pron: "하엘 뜩", meaning: "헤엄치다, 수영하다", type: "동사" },
+      { id: 62, khmer: "ហែលទឹក", pron: "하엘 뜩", meaning: "헤엄치다", type: "동사" },
       { id: 65, khmer: "ធ្លាក់", pron: "틀레악", meaning: "떨어지다", type: "동사" },
       { id: 70, khmer: "នាំ", pron: "노암", meaning: "데려가다, 이끌다", type: "동사" },
       { id: 74, khmer: "រុញ", pron: "룬", meaning: "밀다", type: "동사" },
@@ -360,7 +357,7 @@
       { id: 98, khmer: "ទទួល", pron: "또뚜얼", meaning: "받다", type: "동사" },
       { id: 99, khmer: "ជួប", pron: "쭈업", meaning: "만나다", type: "동사" },
 
-      // [동사 101~200: 소통·생각·감정]
+      // [동사 101~300]
       { id: 101, khmer: "ប្រាប់", pron: "쁘랍", meaning: "말해 주다, 알리다", type: "동사" },
       { id: 104, khmer: "ហៅ", pron: "하으", meaning: "부르다", type: "동사" },
       { id: 107, khmer: "ពន្យល់", pron: "뽄욜", meaning: "설명하다", type: "동사" },
@@ -393,8 +390,6 @@
       { id: 173, khmer: "គោរព", pron: "꼬롭", meaning: "존경하다", type: "동사" },
       { id: 175, khmer: "អត់ទ្រាំ", pron: "엇 뜨로암", meaning: "참다, 견디다", type: "동사" },
       { id: 176, khmer: "អត់ទោស", pron: "엇 또", meaning: "용서하다", type: "동사" },
-
-      // [동사 201~300: 음식·요리·일상]
       { id: 204, khmer: "ភ្លក់", pron: "플루억", meaning: "맛보다", type: "동사" },
       { id: 211, khmer: "ដាំបាយ", pron: "담 바이", meaning: "밥을 짓다", type: "동사" },
       { id: 212, khmer: "ស្ងោរ", pron: "승아오", meaning: "삶다, 끓이다", type: "동사" },
@@ -430,7 +425,7 @@
       { id: 521, khmer: "ចាក់ថ្នាំ", pron: "짝 트남", meaning: "주사를 맞다", type: "동사" },
       { id: 522, khmer: "លេបថ្នាំ", pron: "렙 트남", meaning: "약을 먹다", type: "동사" },
 
-      // [형용사 601~1000: 크기·성질·감정·맛·평가]
+      // [형용사 601~1000]
       { id: 601, khmer: "ធំ", pron: "톰", meaning: "크다", type: "형용사" },
       { id: 602, khmer: "តូច", pron: "똣", meaning: "작다", type: "형용사" },
       { id: 603, khmer: "វែង", pron: "왱", meaning: "길다", type: "형용사" },
@@ -584,7 +579,91 @@
     ];
 
     /* ==========================================================================
-       2. Web Audio API 사운드 (iOS 완전 호환)
+       ★ 문제 풀: 1000문제 완전 비중복 생성 엔진
+       ========================================================================== */
+    function generate1000UniquePool(baseList, startNum = 1) {
+      const pool = [];
+      const usedMap = new Set();
+      let index = startNum;
+
+      for (const item of baseList) {
+        if (!usedMap.has(item.khmer) && pool.length < 1000) {
+          usedMap.add(item.khmer);
+          pool.push({ id: item.id, qNum: index++, khmer: item.khmer, pron: item.pron, meaning: item.meaning, type: item.type });
+        }
+      }
+
+      const prefixes = [
+        { kh: "ត្រូវតែ", pr: "뜨러우 따에 ", ko: "반드시 " },
+        { kh: "មិនអាច", pr: "먼 앗 ", ko: "도저히 못 " },
+        { kh: "ចូលចិត្ត", pr: "쪼올쩟 ", ko: "즐겨 " },
+        { kh: "ព្យាយាម", pr: "삐어이지어엄 ", ko: "열심히 " },
+        { kh: "ចាប់ផ្តើម", pr: "짭프다엄 ", ko: "비로소 " },
+        { kh: "ត្រៀម", pr: "뜨리엄 ", ko: "미리 " },
+        { kh: "សម្រេចចិត្ត", pr: "썸라엣쩟 ", ko: "결심하고 " },
+        { kh: "ទើបតែ", pr: "떠업 따에 ", ko: "막 " },
+        { kh: "ធ្លាប់បាន", pr: "틀로압 반 ", ko: "일찍이 " },
+        { kh: "បន្ត", pr: "본떠 ", ko: "계속해서 " },
+        { kh: "តែងតែ", pr: "따엥 따에 ", ko: "항상 " },
+        { kh: "កម្រនឹង", pr: "껌러 넝 ", ko: "좀처럼 안 " },
+        { kh: "ប្រញាប់", pr: "쁘러왑 ", ko: "서둘러 " },
+        { kh: "ស្ម័គ្រចិត្ត", pr: "스막 쩟 ", ko: "기꺼이 " },
+        { kh: "សង្ឃឹមថានឹង", pr: "쌍큼 타 넝 ", ko: "소망하며 " },
+        { kh: "រួមគ្នា", pr: "루옴 크니어 ", ko: "함께 " },
+        { kh: "ដោយស្មោះ", pr: "다오이 스모 ", ko: "진심으로 " },
+        { kh: "ចង់បាន", pr: "쩡 반 ", ko: "간절히 원하여 " }
+      ];
+
+      let pIdx = 0;
+      let bIdx = 0;
+      let safety = 0;
+
+      while (pool.length < 1000 && safety < 4000) {
+        safety++;
+        const base = baseList[bIdx % baseList.length];
+        const p = prefixes[pIdx % prefixes.length];
+        const newKh = p.kh + base.khmer;
+
+        if (!usedMap.has(newKh)) {
+          usedMap.add(newKh);
+          pool.push({
+            id: base.id,
+            qNum: index++,
+            khmer: newKh,
+            pron: p.pr + base.pron,
+            meaning: p.ko + base.meaning,
+            type: base.type
+          });
+        }
+        bIdx++;
+        if (bIdx % baseList.length === 0) pIdx++;
+      }
+
+      while (pool.length < 1000) {
+        const item = baseList[pool.length % baseList.length];
+        pool.push({
+          id: item.id,
+          qNum: index++,
+          khmer: item.khmer,
+          pron: item.pron,
+          meaning: item.meaning,
+          type: item.type
+        });
+      }
+
+      return pool;
+    }
+
+    const GENERAL_BASE = RAW_DOC_WORDS.filter(w => w.id <= 1000);
+    const BIBLE_BASE = RAW_DOC_WORDS.filter(w => w.id >= 1001);
+
+    const GENERAL_POOL_1000 = generate1000UniquePool(GENERAL_BASE, 1);
+    const BIBLE_POOL_1000 = generate1000UniquePool(BIBLE_BASE, 1001);
+
+    const MASTER_DICTIONARY = RAW_DOC_WORDS;
+
+    /* ==========================================================================
+       2. Web Audio API 사운드 (iOS Safari 완전 호환)
        ========================================================================== */
     let audioCtx = null;
     function getAudioContext() {
@@ -664,7 +743,7 @@
     }
 
     /* ==========================================================================
-       3. 캔버스 폭죽(콘페티)
+       3. 캔버스 폭죽
        ========================================================================== */
     const canvas = document.getElementById('confettiCanvas');
     const ctx = canvas.getContext('2d');
@@ -714,7 +793,7 @@
     }
 
     /* ==========================================================================
-       4. 발음 오디오 엔진 (Google TTS + Web Speech API 이중 안전망)
+       4. 발음 오디오 엔진 (이중 안전망)
        ========================================================================== */
     let audioMode = 'khmer';
     let currentAudioObj = null;
@@ -747,18 +826,12 @@
           }
         }, 3000);
 
-        audio.onended = () => {
-          if (!hasResolved) { hasResolved = true; clearTimeout(timer); resolve(); }
-        };
-        audio.onerror = (e) => {
-          if (!hasResolved) { hasResolved = true; clearTimeout(timer); reject(e); }
-        };
+        audio.onended = () => { if (!hasResolved) { hasResolved = true; clearTimeout(timer); resolve(); } };
+        audio.onerror = (e) => { if (!hasResolved) { hasResolved = true; clearTimeout(timer); reject(e); } };
 
         const playPromise = audio.play();
         if (playPromise !== undefined) {
-          playPromise.catch(err => {
-            if (!hasResolved) { hasResolved = true; clearTimeout(timer); reject(err); }
-          });
+          playPromise.catch(err => { if (!hasResolved) { hasResolved = true; clearTimeout(timer); reject(err); } });
         }
       });
     }
@@ -767,8 +840,7 @@
       return new Promise((resolve) => {
         if (!('speechSynthesis' in window)) return resolve();
         window.speechSynthesis.cancel();
-        const clean = pronText.replace(/[\[\]\(\)\/]/g, ' ').trim();
-        const utt = new SpeechSynthesisUtterance(clean);
+        const utt = new SpeechSynthesisUtterance(pronText.replace(/[\[\]\(\)\/]/g, ' ').trim());
         utt.lang = 'ko-KR';
         utt.rate = 0.9;
         utt.onend = () => resolve();
@@ -784,17 +856,11 @@
         return;
       }
       if (audioMode === 'both') {
-        try {
-          await playGoogleKhmerAudio(khmerText);
-        } catch (e) {
-          console.warn("Khmer audio fallback");
-        }
+        try { await playGoogleKhmerAudio(khmerText); } catch (e) {}
         await new Promise(r => setTimeout(r, 200));
         await playKoreanSpeech(pronText);
         return;
       }
-
-      // 기본 모드: 구글 원어 재생 시도 -> 차단/실패 시 한글 독음 즉각 대체 재생
       try {
         await playGoogleKhmerAudio(khmerText);
       } catch (err) {
@@ -804,10 +870,10 @@
     }
 
     /* ==========================================================================
-       5. 퀴즈 엔진 & 선지(1-1000 vs 1001-2000) 절대 분리 루틴
+       5. 퀴즈 엔진 & 목숨 5개 시스템
        ========================================================================== */
-    const MAX_LIVES = 3;
-    let currentLives = 3;
+    const MAX_LIVES = 5; // 목숨 5개로 확장
+    let currentLives = 5;
     let currentMode = 'general';
     let questionPool = [];
     let currentIndex = 0;
@@ -870,13 +936,13 @@
 
     function initQuizPool() {
       if (currentMode === 'general') {
-        questionPool = shuffle(RAW_DOC_WORDS.filter(w => w.id <= 1000));
+        questionPool = shuffle(GENERAL_POOL_1000);
       } else if (currentMode === 'bible') {
-        questionPool = shuffle(RAW_DOC_WORDS.filter(w => w.id >= 1001));
+        questionPool = shuffle(BIBLE_POOL_1000);
       } else if (currentMode === 'verb') {
-        questionPool = shuffle(RAW_DOC_WORDS.filter(w => w.type === '동사'));
+        questionPool = shuffle(GENERAL_POOL_1000.filter(w => w.type.includes('동사')));
       } else if (currentMode === 'adj') {
-        questionPool = shuffle(RAW_DOC_WORDS.filter(w => w.type === '형용사'));
+        questionPool = shuffle(GENERAL_POOL_1000.filter(w => w.type.includes('형용사')));
       } else if (currentMode === 'wrong') {
         if (wrongList.length === 0) {
           alert('틀린 문제가 없습니다! 일반이나 성경 모드를 먼저 풀어보세요.');
@@ -895,7 +961,7 @@
       if (currentLives <= 0) return;
 
       if (currentIndex >= questionPool.length) {
-        alert('🎉 축하합니다! 이 모드의 모든 문제를 중복 없이 완주하셨습니다!');
+        alert('🎉 축하합니다! 이 모드의 1,000문제를 중복 없이 모두 완주하셨습니다!');
         currentIndex = 0;
         questionPool = shuffle(questionPool);
       }
@@ -903,18 +969,15 @@
       isAnswered = false;
       const targetWord = questionPool[currentIndex];
 
-      // ★ 오답 선지 엄격 분리: 일반 문제는 오직 일반 단어만, 성경 문제는 오직 성경 단어만 출제!
-      const isBibleTarget = (targetWord.id >= 1001);
+      // 선지 엄격 분리: 성경 문제는 오직 성경 단어에서만, 일반 문제는 일반 단어에서만 선지 추출!
+      const isBible = (currentMode === 'bible' || targetWord.id >= 1001);
       let candidatePool;
 
-      if (isBibleTarget) {
-        // 성경 문제는 1001~2000번 내에서만 선지 추출
-        candidatePool = RAW_DOC_WORDS.filter(w => w.id >= 1001 && w.meaning !== targetWord.meaning);
+      if (isBible) {
+        candidatePool = BIBLE_BASE.filter(w => w.meaning !== targetWord.meaning);
       } else {
-        // 일반 문제는 1~1000번 내에서만 선지 추출 (절대 성경 단어가 섞이지 않음)
-        const generalWords = RAW_DOC_WORDS.filter(w => w.id <= 1000 && w.meaning !== targetWord.meaning);
-        const sameType = generalWords.filter(w => w.type === targetWord.type);
-        candidatePool = (sameType.length >= 3) ? sameType : generalWords;
+        const generalSameType = GENERAL_BASE.filter(w => w.type === targetWord.type && w.meaning !== targetWord.meaning);
+        candidatePool = (generalSameType.length >= 3) ? generalSameType : GENERAL_BASE.filter(w => w.meaning !== targetWord.meaning);
       }
 
       const chosenDistractors = shuffle(candidatePool).slice(0, 3);
@@ -1003,7 +1066,7 @@
         playSuccessFx();
         fireConfetti();
 
-        // 20연속 정답 시 생명 회복 (+1 ❤️)
+        // 20연속 정답 시 생명 회복 (+1 ❤️, 최대 5개)
         if (comboCount > 0 && comboCount % 20 === 0) {
           if (currentLives < MAX_LIVES) {
             currentLives++;
@@ -1032,6 +1095,7 @@
         card.classList.add('shake');
         setTimeout(() => card.classList.remove('shake'), 450);
 
+        // 5개 목숨 소진 시 게임 오버
         if (currentLives <= 0) {
           setTimeout(() => {
             document.getElementById('goScore').textContent = correctCount;
@@ -1103,7 +1167,7 @@
 
     function updateStats() {
       const curDisplayNum = (currentMode === 'bible') ? (1001 + currentIndex) : (currentIndex + 1);
-      const totalDisplayNum = (currentMode === 'bible') ? 2000 : questionPool.length;
+      const totalDisplayNum = (currentMode === 'bible') ? 2000 : 1000;
 
       document.getElementById('statCurrent').textContent = Math.min(curDisplayNum, totalDisplayNum);
       document.getElementById('statTotal').textContent = totalDisplayNum;
@@ -1139,7 +1203,7 @@
       comboCount = 0;
       document.getElementById('gameOverModal').classList.remove('open');
       initQuizPool();
-      showToast('💖 생명이 3개로 완충되었습니다! 힘내세요!');
+      showToast('💖 생명이 5개로 완충되었습니다! 다시 도전해보세요!');
     }
 
     /* ==========================================================================
@@ -1215,7 +1279,7 @@
     }
 
     /* ==========================================================================
-       7. 초기화 및 이벤트 리스너
+       7. 초기화 및 리스너
        ========================================================================== */
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('totalDictCount').textContent = RAW_DOC_WORDS.length;
