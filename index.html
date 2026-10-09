@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- 구글 TTS 403 차단 방지 필수 메타 태그 -->
+  <meta name="referrer" content="no-referrer">
   <title>크메르어 2000 종합 퀴즈 & 대사전</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -582,7 +584,7 @@
     ];
 
     /* ==========================================================================
-       2. Web Audio API 사운드 (iOS Safari 완전 호환)
+       2. Web Audio API 사운드 (iOS 완전 호환)
        ========================================================================== */
     let audioCtx = null;
     function getAudioContext() {
@@ -712,7 +714,7 @@
     }
 
     /* ==========================================================================
-       4. 발음 오디오 엔진 (Google TTS + Web Speech API)
+       4. 발음 오디오 엔진 (Google TTS + Web Speech API 이중 안전망)
        ========================================================================== */
     let audioMode = 'khmer';
     let currentAudioObj = null;
@@ -727,15 +729,37 @@
 
     function playGoogleKhmerAudio(text) {
       return new Promise((resolve, reject) => {
-        if (currentAudioObj) { currentAudioObj.pause(); currentAudioObj = null; }
-        const url = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=km&q=${encodeURIComponent(text)}`;
+        if (currentAudioObj) {
+          try { currentAudioObj.pause(); } catch (e) {}
+          currentAudioObj = null;
+        }
+        const encoded = encodeURIComponent(text);
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=km&q=${encoded}`;
         const audio = new Audio(url);
         currentAudioObj = audio;
-        const timer = setTimeout(() => { audio.pause(); reject(new Error("Timeout")); }, 3000);
-        audio.onplay = () => clearTimeout(timer);
-        audio.onended = () => resolve();
-        audio.onerror = (e) => { clearTimeout(timer); reject(e); };
-        audio.play().catch(err => { clearTimeout(timer); reject(err); });
+
+        let hasResolved = false;
+        const timer = setTimeout(() => {
+          if (!hasResolved) {
+            hasResolved = true;
+            try { audio.pause(); } catch (e) {}
+            reject(new Error("Timeout"));
+          }
+        }, 3000);
+
+        audio.onended = () => {
+          if (!hasResolved) { hasResolved = true; clearTimeout(timer); resolve(); }
+        };
+        audio.onerror = (e) => {
+          if (!hasResolved) { hasResolved = true; clearTimeout(timer); reject(e); }
+        };
+
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(err => {
+            if (!hasResolved) { hasResolved = true; clearTimeout(timer); reject(err); }
+          });
+        }
       });
     }
 
@@ -743,7 +767,8 @@
       return new Promise((resolve) => {
         if (!('speechSynthesis' in window)) return resolve();
         window.speechSynthesis.cancel();
-        const utt = new SpeechSynthesisUtterance(pronText.replace(/[\[\]\(\)\/]/g, ' ').trim());
+        const clean = pronText.replace(/[\[\]\(\)\/]/g, ' ').trim();
+        const utt = new SpeechSynthesisUtterance(clean);
         utt.lang = 'ko-KR';
         utt.rate = 0.9;
         utt.onend = () => resolve();
@@ -754,20 +779,32 @@
 
     async function playSmartSpeech(khmerText, pronText) {
       showToast(`🔊 [${khmerText} : ${pronText}] 재생 중`);
-      if (audioMode === 'korean') { await playKoreanSpeech(pronText); return; }
+      if (audioMode === 'korean') {
+        await playKoreanSpeech(pronText);
+        return;
+      }
       if (audioMode === 'both') {
-        try { await playGoogleKhmerAudio(khmerText); } catch (e) {}
+        try {
+          await playGoogleKhmerAudio(khmerText);
+        } catch (e) {
+          console.warn("Khmer audio fallback");
+        }
         await new Promise(r => setTimeout(r, 200));
         await playKoreanSpeech(pronText);
         return;
       }
-      try { await playGoogleKhmerAudio(khmerText); } catch (err) {
+
+      // 기본 모드: 구글 원어 재생 시도 -> 차단/실패 시 한글 독음 즉각 대체 재생
+      try {
+        await playGoogleKhmerAudio(khmerText);
+      } catch (err) {
+        showToast(`🗣️ 기기 음성 대체: [${pronText}]`);
         await playKoreanSpeech(pronText);
       }
     }
 
     /* ==========================================================================
-       5. 퀴즈 엔진 & 세션 중복 완전 방지 루틴
+       5. 퀴즈 엔진 & 선지(1-1000 vs 1001-2000) 절대 분리 루틴
        ========================================================================== */
     const MAX_LIVES = 3;
     let currentLives = 3;
@@ -866,9 +903,21 @@
       isAnswered = false;
       const targetWord = questionPool[currentIndex];
 
-      // 4지선다 출제 보장: 대상 단어와 다른 단어 3개 무작위 추출
-      const candidateDistractors = RAW_DOC_WORDS.filter(w => w.meaning !== targetWord.meaning);
-      const chosenDistractors = shuffle(candidateDistractors).slice(0, 3);
+      // ★ 오답 선지 엄격 분리: 일반 문제는 오직 일반 단어만, 성경 문제는 오직 성경 단어만 출제!
+      const isBibleTarget = (targetWord.id >= 1001);
+      let candidatePool;
+
+      if (isBibleTarget) {
+        // 성경 문제는 1001~2000번 내에서만 선지 추출
+        candidatePool = RAW_DOC_WORDS.filter(w => w.id >= 1001 && w.meaning !== targetWord.meaning);
+      } else {
+        // 일반 문제는 1~1000번 내에서만 선지 추출 (절대 성경 단어가 섞이지 않음)
+        const generalWords = RAW_DOC_WORDS.filter(w => w.id <= 1000 && w.meaning !== targetWord.meaning);
+        const sameType = generalWords.filter(w => w.type === targetWord.type);
+        candidatePool = (sameType.length >= 3) ? sameType : generalWords;
+      }
+
+      const chosenDistractors = shuffle(candidatePool).slice(0, 3);
       const options = shuffle([targetWord, ...chosenDistractors]);
 
       currentQuestion = { target: targetWord, options: options };
@@ -1166,7 +1215,7 @@
     }
 
     /* ==========================================================================
-       7. 초기화 및 이벤트 등록
+       7. 초기화 및 이벤트 리스너
        ========================================================================== */
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('totalDictCount').textContent = RAW_DOC_WORDS.length;
