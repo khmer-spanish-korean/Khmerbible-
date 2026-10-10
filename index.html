@@ -152,7 +152,6 @@
         <button class="tab-btn" data-mode="wrong">오답 (<span id="wrongCount">0</span>)</button>
       </div>
 
-      <!-- 상단 상태창: 목숨 5개 표기 -->
       <div class="stats-bar">
         <div class="stat-item">
           <span class="stat-label">생명 (5개)</span>
@@ -276,7 +275,7 @@
 
   <script>
     /* ==========================================================================
-       1. 사용자 제공 원본 문서 기반 2,000단어 데이터베이스 (순수 원형 단독 수록)
+       1. 사용자 제공 원본 문서 기반 2,000단어 데이터베이스
        ========================================================================== */
     const RAW_DOC_WORDS = [
       // [동사 1~100]
@@ -587,7 +586,6 @@
         const shuffled = shuffle(baseList);
         for (const item of shuffled) {
           if (pool.length < targetLength) {
-            // 순수 원형 그대로 추가 (수식어 절대 붙이지 않음)
             pool.push({
               id: item.id,
               khmer: item.khmer,
@@ -819,7 +817,7 @@
     }
 
     /* ==========================================================================
-       5. 퀴즈 엔진 & 선지 격리(일반 vs 성경) & 목숨 5개
+       5. 퀴즈 엔진 & 명예의 전당 칭호 (20~1000 연속 티어 개편)
        ========================================================================== */
     const MAX_LIVES = 5;
     let currentLives = 5;
@@ -836,12 +834,16 @@
 
     let userStats = { bestCombo: 0, unlockedBadges: [] };
 
+    // ★ 유저 요청에 따라 정확히 재설정된 명예의 전당 칭호 티어
     const BADGES = [
-      { id: 'streak_10', icon: '🥉', title: '브론즈', desc: '10회 연속 정답' },
-      { id: 'streak_20', icon: '🥈', title: '실버', desc: '20회 연속 정답' },
-      { id: 'streak_30', icon: '🥇', title: '골드', desc: '30회 연속 정답' },
-      { id: 'streak_40', icon: '💎', title: '다이아몬드', desc: '40회 연속 정답' },
-      { id: 'streak_50', icon: '👑', title: '크메르 지존', desc: '50회 연속 정답' },
+      { id: 'streak_20', icon: '🥉', title: '브론즈', desc: '20개 연속 정답 달성' },
+      { id: 'streak_50', icon: '🥈', title: '실버', desc: '50개 연속 정답 달성' },
+      { id: 'streak_80', icon: '🥇', title: '골드', desc: '80개 연속 정답 달성' },
+      { id: 'streak_100', icon: '💎', title: '다이아', desc: '100개 연속 정답 달성' },
+      { id: 'streak_200', icon: '⚔️', title: '크메르 레전드', desc: '200개 연속 정답 달성' },
+      { id: 'streak_300', icon: '👑', title: '크메르 지존', desc: '300개 연속 정답 달성' },
+      { id: 'streak_500', icon: '📜', title: '캄보디아 영주권자', desc: '500개 연속 정답 달성' },
+      { id: 'streak_1000', icon: '🇰🇭', title: '캄보디아인', desc: '1000개 연속 정답 달성' },
       { id: 'acc_almost', icon: '🏹', title: '거의 백발백중', desc: '20문제 이상 풀이 & 정답률 90% 이상' },
       { id: 'acc_master', icon: '🎯', title: '전설의 백발백중', desc: '100문제 이상 풀이 & 정답률 90% 이상' }
     ];
@@ -1044,7 +1046,6 @@
         card.classList.add('shake');
         setTimeout(() => card.classList.remove('shake'), 450);
 
-        // 5개 목숨 소진 시 게임 오버
         if (currentLives <= 0) {
           setTimeout(() => {
             document.getElementById('goScore').textContent = correctCount;
@@ -1092,13 +1093,21 @@
         userStats.bestCombo = comboCount;
         isNew = true;
       }
-      [10, 20, 30, 40, 50].forEach(num => {
+      
+      // ★ 개편된 연속 칭호 티어 달성 체크
+      const streakMilestones = [20, 50, 80, 100, 200, 300, 500, 1000];
+      streakMilestones.forEach(num => {
         const id = `streak_${num}`;
         if (comboCount >= num && !userStats.unlockedBadges.includes(id)) {
           userStats.unlockedBadges.push(id);
           isNew = true;
+          const badgeObj = BADGES.find(b => b.id === id);
+          if (badgeObj) {
+            showToast(`🏆 새로운 칭호 달성! [${badgeObj.title}] (${num}연속 정답)`);
+          }
         }
       });
+
       if (solvedCount >= 20 && (correctCount / solvedCount) >= 0.9 && !userStats.unlockedBadges.includes('acc_almost')) {
         userStats.unlockedBadges.push('acc_almost'); isNew = true;
       }
